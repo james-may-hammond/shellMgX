@@ -1,16 +1,24 @@
 use std::io::{stdin, stdout, Write,Read};
-use std::process::{Command, Stdio,Child}; // new Libriaries for pipes
-use std::env::{self, args};
+use std::process::{Command, Stdio,Child}; 
+use std::env::{self};
 use std::path::Path;
 use std::collections::HashMap;
+
+
+// shellMgX, A simple shell interface I have designed to learn rust
+// It can handle={Many built in commands, Enviorment Variables, Command Pipelines, External Programs}
+
+
 
 fn main() {
     println!("Well hello there and welcome to this shell interface I built, if you wanna leave just use exit");
     println!("Use ohh toodles to call for help.");
     
+    // Map for shell variables
     let mut shell_env: HashMap<String, String> = HashMap::new();
-    
+    // Main Program Loop
     loop {
+        // Display shell header with current directory
         let current_dir = env::current_dir().unwrap_or_default();
         let dir_name = current_dir.file_name()
             .unwrap_or_default()
@@ -19,20 +27,24 @@ fn main() {
         print!("{} --> ", dir_name);
         let _ = stdout().flush();
         
+        // Taking User input
         let mut ip = String::new();
         stdin().read_line(&mut ip).unwrap();
         let cmd = ip.trim();
         
+        // Handling Empty commands and pipelines
         if cmd.is_empty() { continue; }
         if cmd.contains("|") {
             execute_pipeline(cmd,&shell_env);
             continue;
         }
+
+        // Splitting commands on teh basis of whitespaces
         let parts: Vec<&str> = cmd.split_whitespace().collect();
         let program = parts[0];
         let args = &parts[1..];
         
-        // Handle built-in commands
+        // All of our Built in commands along with assisting help, exeption and exit commands
         match program {
             "exit" => {
                 println!("Okee Byee");
@@ -40,7 +52,7 @@ fn main() {
             },
             "cd" => {
                 let new_dir = if args.is_empty() {
-                    match env::var("HOME") {
+                    match env::var("HOME") { // Defaults to home
                         Ok(home) => home,
                         Err(_) => {
                             eprintln!("Could not find home directory");
@@ -158,23 +170,26 @@ fn main() {
         }
     }
 }
-fn execute_pipeline(cmd:&str, shell_env: &HashMap<String,String>) {
+// The function to handle pipelines
+fn execute_pipeline(cmd:&str, _shell_env: &HashMap<String,String>) {
+    // splits the command by the pipe charecter '|'
     let commands: Vec<&str> = cmd.split('|').map(|s| s.trim()).collect();
 
     if commands.is_empty() {
         eprintln!("Oi mate that pipeline seems empty, eh...");
         return;
     }
-
+    // Stores child processes
     let mut processes: Vec<Child> = Vec::new();
-
+    // Creating all required processes
     for (i, cmd_str) in commands.iter().enumerate() {
         let parts: Vec<&str> = cmd_str.split_whitespace().collect();
         if parts.is_empty() { continue; }
         let program = parts[0];
         let args = &parts[1..];
+
         if ["cd", "export", "unset"].contains(&program) {
-            eprintln!("Built-in command '{}' cannot be used in a pipeline", program);
+            eprintln!("Oi mate sorry there can't use '{}' in a pipeline ", program);
             break;
         }
         let mut command = Command::new(program);
@@ -199,10 +214,12 @@ fn execute_pipeline(cmd:&str, shell_env: &HashMap<String,String>) {
             }
         }
     }
+    // Connecting the pipes
     if processes.len() > 1 {
         for i in 0..processes.len() - 1 {
             if let Some(mut stdout) = processes[i].stdout.take() {
                 if let Some(mut stdin) = processes[i + 1].stdin.take() {
+                    // Thread to handle data transfer data between all the pipelomes
                     std::thread::spawn(move || {
                         let mut buffer = [0; 1024];
                         loop {
@@ -221,8 +238,11 @@ fn execute_pipeline(cmd:&str, shell_env: &HashMap<String,String>) {
             }
         }
     }
+    // Delay so the prev processes are finished
     for process in &mut processes {
         let _ = process.wait();
     }
     
 }
+
+// Thanks - Aalekh Narain, (CSE, LNMIIT Sem-2)
