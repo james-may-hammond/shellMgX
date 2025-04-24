@@ -6,12 +6,11 @@ use std::collections::HashMap;
 
 fn main() {
     println!("Well hello there and welcome to this shell interface I built, if you wanna leave just use exit");
+    println!("Use ohh toodles to call for help.");
     
-    // Create a map to store environment variables
     let mut shell_env: HashMap<String, String> = HashMap::new();
     
     loop {
-        // Display current directory in prompt
         let current_dir = env::current_dir().unwrap_or_default();
         let dir_name = current_dir.file_name()
             .unwrap_or_default()
@@ -38,7 +37,6 @@ fn main() {
             },
             "cd" => {
                 let new_dir = if args.is_empty() {
-                    // If no argument is provided, change to the home directory
                     match env::var("HOME") {
                         Ok(home) => home,
                         Err(_) => {
@@ -67,7 +65,6 @@ fn main() {
                     if arg.starts_with("$") {
                         let var_name = &arg[1..];
                         if var_name == "$" {
-                            // Handle $$ (process id)
                             output.push(std::process::id().to_string());
                         } else if let Ok(value) = env::var(var_name) {
                             output.push(value);
@@ -88,11 +85,9 @@ fn main() {
                         let key = &arg[..pos];
                         let value = &arg[pos+1..];
                         
-                        // Update both our shell's environment and the process environment
-                        shell_env.insert(key.to_string(), value.to_string());
                         
-                        // Wrap unsafe call in an unsafe block
-                        unsafe {
+                        shell_env.insert(key.to_string(), value.to_string());
+                            unsafe {
                             env::set_var(key, value);
                         }
                         
@@ -122,19 +117,31 @@ fn main() {
                     }
                 }
             },
-            "help" => {
-                println!("Available built-in commands:");
-                println!("  cd [dir]      - Change directory (to home if no dir specified)");
-                println!("  pwd           - Print working directory");
-                println!("  echo [args]   - Print arguments (supports $VAR expansion)");
-                println!("  export KEY=VAL- Set environment variable");
-                println!("  unset KEY     - Unset environment variable");
-                println!("  env/printenv  - List all environment variables");
-                println!("  exit          - Exit the shell");
-                println!("  help          - Show this help message");
+            "ohh" => {
+                if args.len() > 0 && args[0] == "toodles" {
+                    println!("Available built-in commands:");
+                    println!("  cd [dir]      - Change directory (to home if no dir specified)");
+                    println!("  pwd           - Print working directory");
+                    println!("  echo [args]   - Print arguments (supports $VAR expansion)");
+                    println!("  export KEY=VAL- Set environment variable");
+                    println!("  unset KEY     - Unset environment variable");
+                    println!("  env/printenv  - List all environment variables");
+                    println!("  exit          - Exit the shell");
+                    println!("  ohh toodles          - Show this help message");
+                } else {
+                    let child = Command::new(program).args(args).spawn();
+                    match child {
+                        Ok(mut child_proc) => {
+                            child_proc.wait().unwrap();
+                        }
+                        Err(_e) => {
+                            eprintln!("Could not run that mate, sorry!");
+                        }
+                    }
+                }
             },
             _ => {
-                // Handle external commands
+               
                 let child = Command::new(program).args(args).spawn();
                 match child {
                     Ok(mut child_proc) => {
