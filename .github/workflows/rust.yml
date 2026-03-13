@@ -49,4 +49,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
+          generate_release_notes: true
 
