@@ -18,6 +18,17 @@ Editorial --> https://www.notion.so/shellMgX-A-Rust-Based-Shell-Interface-Editor
 - Use `cargo run`
 - Use the command `ohh toodles` for help
 
+## Releases
+Pre-built binaries are available on the [GitHub Releases](https://github.com/yourusername/shellMgX/releases) page.
+
+### Installation from Release
+1. Download the appropriate archive for your platform:
+   - Linux: `shellMgX-linux.tar.gz`
+   - macOS: `shellMgX-mac.tar.gz`
+   - Windows: `shellMgX-windows.exe.zip`
+2. Extract the archive
+3. The binary is ready to run (no chmod needed on Linux/macOS)
+
 ## What's New With Version 2.0
 - Implemented rustyline so shellMgX supports arrow keys, vim line-editing shortcuts and persistent command logging
 - Implemented parsing of quote endings

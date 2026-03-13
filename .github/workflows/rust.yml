@@ -47,9 +47,27 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: Rename-Item -Path "target\${{ matrix.target }}\release\shell.exe" -NewName "${{ matrix.artifact_name }}"
 
+      - name: Package Linux release
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          cd target/${{ matrix.target }}/release
+          tar -czf ${{ matrix.artifact_name }}.tar.gz ${{ matrix.artifact_name }}
+
+      - name: Package macOS release
+        if: matrix.os == 'macos-latest'
+        run: |
+          cd target/${{ matrix.target }}/release
+          tar -czf ${{ matrix.artifact_name }}.tar.gz ${{ matrix.artifact_name }}
+
+      - name: Package Windows release
+        if: matrix.os == 'windows-latest'
+        run: |
+          cd target/${{ matrix.target }}/release
+          Compress-Archive -Path ${{ matrix.artifact_name }} -DestinationPath ${{ matrix.artifact_name }}.zip
+
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2
         with:
-          files: target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
+          files: target/${{ matrix.target }}/release/${{ matrix.artifact_name }}*
           generate_release_notes: true
 
